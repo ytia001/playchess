@@ -1,0 +1,60 @@
+body{
+  padding-top: 100px;
+  padding-left: 450px;
+  padding-right: 450px;
+}
+
+.icons{
+  height: 35px;
+  width: 30px;
+}
+
+.board-style{
+  display: flex;
+  flex-direction: column ;
+  width: 550px;
+  align-items: center;
+  justify-content: center;
+}
+
+.board-row-style{
+  display: flex;
+  flex-direction: row;
+}
+
+
+.tile-style-wood{
+  display: flex;
+  width: 50px;
+  height: 50px;
+  /* border-color: brown; */
+  /* border-style:none;
+  border-width: 1px; */
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  background-color: burlywood;
+} 
+
+.tile-style-white{
+  display: flex;
+  width: 50px;
+  height: 50px;
+  /* border-color: brown; */
+  /* border-style: solid;
+  border-width: 1px; */
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+} 
+
+.tile-style-white:hover{
+  background-color: grey;
+  cursor: pointer;
+}
+
+.tile-style-wood:hover{
+  background-color: grey;
+  cursor: pointer;
+}
