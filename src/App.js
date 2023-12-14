@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import * as icons from "./images/icons";
 
+function validate(position,boardState){
+  if(position[0] < 0 || position[0] > 7 || position[1] < 0 || position[1] > 7) return -1;
+
+  if(boardState[position[0]][position[1]]) return 1;
+
+  return 0;
+} 
+
+
 
 function check(start,boardState){
     if((!start[0] && !start[1]) || !boardState[start[0]][start[1]]) return start;
@@ -9,17 +18,23 @@ function check(start,boardState){
     let allowableTiles = [start];
 
     if(piece === "pawn"){
-      const moves = [[-1,0],[-2,0],[-1,-1],[-1,1]];
-      moves.forEach(([dr,dc])=>{
-        allowableTiles.push([start[0]+dr,start[1]+dc])
-      })
+      for(const [dr,dc] of [[-1,-1],[-1,1]]){
+        if(validate([start[0]+dr,start[1]+dc],boardState) !== 1 || boardState[start[0]+dr][start[1]+dc][0] === 'w') continue;
+        allowableTiles.push([start[0]+dr,start[1]+dc]);
+      }
+      const moves = start[0] === 6 ? [[-1,0],[-2,0]] : [[-1,0]];
+      for(const [dr,dc] of moves){
+        if(validate([start[0]+dr,start[1]+dc],boardState) !== 0) break;
+        allowableTiles.push([start[0]+dr,start[1]+dc]);
+      }
     }
 
     else if (piece === "knight"){
       const moves = [[-2,1],[-2,-1],[2,1],[2,-1],[1,-2],[-1,-2],[1,2],[-1,2]];
-      moves.map(([dr,dc])=>(
+      moves.forEach(([dr,dc])=>{
+        if(validate([start[0]+dr,start[1]+dc],boardState) === 1 && boardState[start[0]+dr][start[1]+dc][0] === 'w') return;
         allowableTiles.push([start[0]+dr,start[1]+dc])
-      ))
+      })
     }
 
     else if (piece === "king"){
@@ -30,14 +45,15 @@ function check(start,boardState){
     }
 
     else if (piece === "rook"){
-      for (let nc = 0 ; nc < 8 ; nc++){
-        if(nc === start[1]) continue;
-        allowableTiles.push([start[0],nc]);
-      }
-
-      for (let nr = 0 ; nr < 8 ; nr++){
-        if(nr === start[0]) continue;
-        allowableTiles.push([nr,start[1]]);
+      const moves = [[-1,0],[0,1],[1,0],[0,-1]];
+      for (const move of moves){
+        let [nr,nc] = [start[0]+move[0],start[1]+move[1]];
+        while(nr >= 0 && nr < 8 && nc >= 0 && nc < 8){
+          if(boardState[nr][nc]) break;
+          allowableTiles.push([nr,nc]);
+          nr += move[0];
+          nc += move[1]; 
+        }
       }
     }
 
@@ -46,6 +62,7 @@ function check(start,boardState){
       for (const move of moves){
         let [nr,nc] = [start[0]+move[0],start[1]+move[1]];
         while(nr >= 0 && nr < 8 && nc >= 0 && nc < 8){
+          if(boardState[nr][nc]) break;
           allowableTiles.push([nr,nc]);
           nr += move[0];
           nc += move[1]; 
@@ -54,20 +71,22 @@ function check(start,boardState){
     }
 
     else {
-      for (let nc = 0 ; nc < 8 ; nc++){
-        if(nc === start[1]) continue;
-        allowableTiles.push([start[0],nc]);
-      }
-
-      for (let nr = 0 ; nr < 8 ; nr++){
-        if(nr === start[0]) continue;
-        allowableTiles.push([nr,start[1]]);
-      }
-
-      const moves = [[-1,1],[-1,-1],[1,1],[1,-1]];
+      let moves = [[-1,0],[0,1],[1,0],[0,-1]];
       for (const move of moves){
         let [nr,nc] = [start[0]+move[0],start[1]+move[1]];
         while(nr >= 0 && nr < 8 && nc >= 0 && nc < 8){
+          if(boardState[nr][nc]) break;
+          allowableTiles.push([nr,nc]);
+          nr += move[0];
+          nc += move[1]; 
+        }
+      }
+
+      moves = [[-1,1],[-1,-1],[1,1],[1,-1]];
+      for (const move of moves){
+        let [nr,nc] = [start[0]+move[0],start[1]+move[1]];
+        while(nr >= 0 && nr < 8 && nc >= 0 && nc < 8){
+          if(boardState[nr][nc]) break;
           allowableTiles.push([nr,nc]);
           nr += move[0];
           nc += move[1]; 
@@ -121,9 +140,10 @@ function Board(){
     ["w_rook","w_knight","w_bishop","w_queen","w_king","w_bishop","w_knight","w_rook"]
   ]);
   const [onGoing,setOnGoing] = useState(false);
-  //build a helper function that returns allowable move from given start positio
+  //build a helper function that returns allowable move from given start position
   let allowableTiles = check(start,boardState);
   //console.log(allowableTiles);
+  const [turn,setTurn] = useState(0);
 
   function handleClick(position){
  
@@ -157,6 +177,7 @@ function Board(){
         newBoardState[position[0]][position[1]] = boardState[start[0]][start[1]];
         newBoardState[start[0]][start[1]] = null;
         setBoardState(newBoardState);
+        setTurn(turn + 1);
       }
 
     }
@@ -170,7 +191,8 @@ function Board(){
   for(let r = 0 ; r < 8 ; r++){
     let rowTemplate = [];
     for(let c = 0; c < 8 ; c++){
-      rowTemplate.push(<Tile isWhite = {isWhite} onBoardPiece = {boardState[r][c]} onhandleClick = {() => handleClick([r,c])} onActive = { onGoing && start[0] ===r && start[1] === c? true : false}/>);
+      rowTemplate.push(<Tile isWhite = {isWhite} onBoardPiece = {boardState[r][c]} onhandleClick = {() => handleClick([r,c])} onActive = { 
+      onGoing && allowableTiles.some(tile => {return tile[0]===r && tile[1]===c})}/>);
       isWhite = !isWhite;
     }
     boardTemplate.push(rowTemplate);
@@ -178,11 +200,14 @@ function Board(){
   }
   
   return(
-    <div className="board-style">
-      {boardTemplate.map((row,index) => (
-        <div className="board-row-style" key={8-index}>{row}</div>
-      ))}
-    </div>
+    <>
+      <div className = "turn">Turn: {turn}</div>
+      <div className="board-style">
+        {boardTemplate.map((row,index) => (
+          <div className="board-row-style" key={8-index}>{row}</div>
+        ))}
+      </div>
+    </>
   );
 }
 
