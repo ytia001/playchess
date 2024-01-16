@@ -14,7 +14,6 @@ function Piece({onTilePiece}){
   
 }
 
-
 function Tile({isWhite,onBoardPiece,onhandleClick}){
 
   if(isWhite){
