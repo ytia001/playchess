@@ -208,7 +208,7 @@ function Board(){
         // Fetch computer move using BACKEND API (STOCKFISH) + OPPONENT MOVE
         const nextMoveRequest = async (currentMoves) =>{
           let toSend = moves.slice() + " " + currentMoves;
-          console.log("toSend: ",toSend);
+          console.log("toSend:",toSend);
           try{
            const nextMoves = await fetch('http://127.0.0.1:5000/stockfish-api',{
              method: 'POST',
@@ -228,7 +228,8 @@ function Board(){
              let newBoardState = boardState.slice();
              newBoardState[end[0]][end[1]] = boardState[start[0]][start[1]];
              newBoardState[start[0]][start[1]] = null;
-
+             console.log("start: ",start);
+             console.log("end:", end)
              setBoardState(newBoardState);     
              setMoves(toSend + " " + toMove);
              setTurn((prevTurn) => prevTurn + 1);
@@ -240,7 +241,7 @@ function Board(){
          }
        
         };
-
+        
         nextMoveRequest(strMoves);    
       }
 
